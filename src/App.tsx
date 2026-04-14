@@ -7,6 +7,7 @@ import KitchenView from './components/KitchenView';
 import Inventory from './components/Inventory';
 import StaffManager from './components/StaffManager';
 import Reports from './components/Reports';
+import Changelog from './components/Changelog';
 import { useCafeStore } from './store';
 import { View } from './types';
 
@@ -21,7 +22,9 @@ export default function App() {
     addOrder, 
     updateOrderStatus,
     staff,
-    setStaff
+    setStaff,
+    expenses,
+    addExpense
   } = useCafeStore();
 
   const renderView = () => {
@@ -35,11 +38,14 @@ export default function App() {
       case 'kitchen':
         return <KitchenView orders={orders} updateStatus={updateOrderStatus} />;
       case 'inventory':
-        return <Inventory ingredients={ingredients} setIngredients={setIngredients} />;
+        return <Inventory ingredients={ingredients} setIngredients={setIngredients} addExpense={addExpense} />;
       case 'staff':
         return <StaffManager staff={staff} setStaff={setStaff} />;
       case 'reports':
-        return <Reports orders={orders} />;
+        return <Reports orders={orders} expenses={expenses} />;
+      // Отображение нового раздела Журнала обновлений
+      case 'changelog':
+        return <Changelog />;
       default:
         return <Dashboard orders={orders} />;
     }

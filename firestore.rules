@@ -1,0 +1,53 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: dishes
+    // Fields: id, name, category, price, description, available, ingredients
+    //
+    // Collection: ingredients
+    // Fields: id, name, unit, quantity, minStock
+    //
+    // Collection: orders
+    // Fields: id, tableNumber, items, status, timestamp, total
+    //
+    // Collection: staff
+    // Fields: id, name, position, phone, login
+    //
+    // ===============================================================
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() && (
+        request.auth.token.email == "babkinmishel@gmail.com" ||
+        get(/databases/$(database)/documents/staff/$(request.auth.uid)).data.position == 'Администратор'
+      );
+    }
+
+    match /dishes/{dishId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /ingredients/{ingredientId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+
+    match /orders/{orderId} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated();
+    }
+
+    match /staff/{staffId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+  }
+}

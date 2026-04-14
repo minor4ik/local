@@ -1,0 +1,77 @@
+{
+  "entities": {
+    "dish": {
+      "title": "Блюдо",
+      "description": "Элемент меню кафе",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "category": { "type": "string" },
+        "price": { "type": "number" },
+        "description": { "type": "string" },
+        "available": { "type": "boolean" },
+        "ingredients": { "type": "array" }
+      },
+      "required": ["id", "name", "price", "category"]
+    },
+    "ingredient": {
+      "title": "Ингредиент",
+      "description": "Продукт на складе",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "unit": { "type": "string" },
+        "quantity": { "type": "number" },
+        "minStock": { "type": "number" }
+      },
+      "required": ["id", "name", "unit", "quantity"]
+    },
+    "order": {
+      "title": "Заказ",
+      "description": "Заказ клиента",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "tableNumber": { "type": "number" },
+        "items": { "type": "array" },
+        "status": { "type": "string", "enum": ["pending", "cooking", "ready", "completed", "cancelled"] },
+        "timestamp": { "type": "number" },
+        "total": { "type": "number" }
+      },
+      "required": ["id", "tableNumber", "items", "status", "timestamp", "total"]
+    },
+    "staff": {
+      "title": "Сотрудник",
+      "description": "Персонал кафе",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "position": { "type": "string" },
+        "phone": { "type": "string" },
+        "login": { "type": "string" }
+      },
+      "required": ["id", "name", "position", "login"]
+    }
+  },
+  "firestore": {
+    "/dishes/{dishId}": {
+      "schema": "dish",
+      "description": "Коллекция блюд меню"
+    },
+    "/ingredients/{ingredientId}": {
+      "schema": "ingredient",
+      "description": "Коллекция ингредиентов на складе"
+    },
+    "/orders/{orderId}": {
+      "schema": "order",
+      "description": "Коллекция заказов"
+    },
+    "/staff/{staffId}": {
+      "schema": "staff",
+      "description": "Коллекция сотрудников"
+    }
+  }
+}

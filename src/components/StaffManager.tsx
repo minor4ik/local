@@ -46,14 +46,14 @@ export default function StaffManager({ staff, setStaff }: StaffManagerProps) {
       </div>
 
       {isAdding && (
-        <Card className="p-6 border-2 border-indigo-100 bg-indigo-50/30">
-          <div className="flex justify-between items-center mb-6">
+        <Card className="p-4 sm:p-6 border-2 border-indigo-100 bg-indigo-50/30">
+          <div className="flex justify-between items-center mb-4 sm:mb-6">
             <h3 className="text-lg font-bold">Новый сотрудник</h3>
             <button onClick={() => setIsAdding(false)} className="text-slate-400 hover:text-slate-600">
               <X size={20} />
             </button>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
             <div className="space-y-2">
               <label className="text-sm font-medium text-slate-700">ФИО</label>
               <input 
@@ -107,25 +107,25 @@ export default function StaffManager({ staff, setStaff }: StaffManagerProps) {
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-slate-50 border-b border-slate-200">
-                <th className="px-6 py-4 text-sm font-semibold text-slate-600">ФИО</th>
-                <th className="px-6 py-4 text-sm font-semibold text-slate-600">Должность</th>
-                <th className="px-6 py-4 text-sm font-semibold text-slate-600">Телефон</th>
-                <th className="px-6 py-4 text-sm font-semibold text-slate-600">Логин</th>
-                <th className="px-6 py-4 text-sm font-semibold text-slate-600 text-right">Действия</th>
+                <th className="px-4 sm:px-6 py-4 text-sm font-semibold text-slate-600">ФИО</th>
+                <th className="px-4 sm:px-6 py-4 text-sm font-semibold text-slate-600">Должность</th>
+                <th className="px-4 sm:px-6 py-4 text-sm font-semibold text-slate-600 hidden sm:table-cell">Телефон</th>
+                <th className="px-4 sm:px-6 py-4 text-sm font-semibold text-slate-600 hidden md:table-cell">Логин</th>
+                <th className="px-4 sm:px-6 py-4 text-sm font-semibold text-slate-600 text-right">Действия</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {staff.map((member) => (
-                <tr key={member.id} className="hover:bg-slate-50/50 transition-colors">
-                  <td className="px-6 py-4 font-medium text-slate-900">{member.name}</td>
-                  <td className="px-6 py-4">
+                <tr key={member.id} className="hover:bg-slate-50/50 transition-colors text-sm sm:text-base">
+                  <td className="px-4 sm:px-6 py-4 font-medium text-slate-900">{member.name}</td>
+                  <td className="px-4 sm:px-6 py-4">
                     <span className="px-2 py-1 rounded-md bg-indigo-50 text-indigo-700 text-xs font-medium">
                       {member.position}
                     </span>
                   </td>
-                  <td className="px-6 py-4 text-slate-600">{member.phone}</td>
-                  <td className="px-6 py-4 text-slate-600">{member.login}</td>
-                  <td className="px-6 py-4 text-right">
+                  <td className="px-4 sm:px-6 py-4 text-slate-600 hidden sm:table-cell">{member.phone}</td>
+                  <td className="px-4 sm:px-6 py-4 text-slate-600 hidden md:table-cell">{member.login}</td>
+                  <td className="px-4 sm:px-6 py-4 text-right">
                     <div className="flex justify-end gap-2">
                       <button className="p-2 text-slate-400 hover:text-indigo-600 transition-colors">
                         <Edit2 size={16} />

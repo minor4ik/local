@@ -1,31 +1,47 @@
 import React, { useState } from 'react';
 import { AlertTriangle, Plus, ArrowDown, ArrowUp, X } from 'lucide-react';
-import { Ingredient } from '../types';
+import { Ingredient, Expense } from '../types';
 import { Card, Button, cn } from './UI';
 
 interface InventoryProps {
   ingredients: Ingredient[];
   setIngredients: React.Dispatch<React.SetStateAction<Ingredient[]>>;
+  addExpense: (expense: Expense) => void;
 }
 
-export default function Inventory({ ingredients, setIngredients }: InventoryProps) {
+export default function Inventory({ ingredients, setIngredients, addExpense }: InventoryProps) {
   const [isAdding, setIsAdding] = useState(false);
-  const [supply, setSupply] = useState({ ingredientId: '', amount: 0 });
+  const [supply, setSupply] = useState({ ingredientId: '', amount: 0, cost: 0 });
 
   const handleSupply = () => {
     if (!supply.ingredientId || supply.amount <= 0) return;
+    
+    const ingredient = ingredients.find(i => i.id === supply.ingredientId);
+    if (!ingredient) return;
+
+    // Обновляем склад
     setIngredients(prev => prev.map(ing => 
       ing.id === supply.ingredientId 
-        ? { ...ing, quantity: ing.quantity + supply.amount } 
+        ? { ...ing, quantity: Number((ing.quantity + supply.amount).toFixed(3)) } 
         : ing
     ));
+
+    // Добавляем издержку
+    addExpense({
+      id: Math.random().toString(36).substr(2, 9),
+      description: `Поставка: ${ingredient.name} (${supply.amount} ${ingredient.unit})`,
+      amount: supply.cost || (ingredient.costPrice * supply.amount),
+      category: 'inventory',
+      timestamp: Date.now()
+    });
+
     setIsAdding(false);
-    setSupply({ ingredientId: '', amount: 0 });
+    setSupply({ ingredientId: '', amount: 0, cost: 0 });
   };
 
   const adjustStock = (id: string, delta: number) => {
     setIngredients(prev => prev.map(ing => 
-      ing.id === id ? { ...ing, quantity: Math.max(0, ing.quantity + delta) } : ing
+      ing.id === id ? { ...ing, quantity: Number(Math.max(0, ing.quantity + delta).toFixed(3)) } : ing
     ));
   };
 
@@ -40,14 +56,14 @@ export default function Inventory({ ingredients, setIngredients }: InventoryProp
       </div>
 
       {isAdding && (
-        <Card className="p-6 border-2 border-indigo-100 bg-indigo-50/30">
-          <div className="flex justify-between items-center mb-6">
+        <Card className="p-4 sm:p-6 border-2 border-indigo-100 bg-indigo-50/30">
+          <div className="flex justify-between items-center mb-4 sm:mb-6">
             <h3 className="text-lg font-bold">Оформление поставки</h3>
             <button onClick={() => setIsAdding(false)} className="text-slate-400 hover:text-slate-600">
               <X size={20} />
             </button>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
             <div className="space-y-2">
               <label className="text-sm font-medium text-slate-700">Ингредиент</label>
               <select 
@@ -70,6 +86,16 @@ export default function Inventory({ ingredients, setIngredients }: InventoryProp
                 onChange={e => setSupply({...supply, amount: Number(e.target.value)})}
               />
             </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-slate-700">Стоимость закупки (₽)</label>
+              <input 
+                type="number" 
+                className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:ring-2 focus:ring-indigo-500/20"
+                placeholder="Оставьте 0 для авторасчета"
+                value={supply.cost}
+                onChange={e => setSupply({...supply, cost: Number(e.target.value)})}
+              />
+            </div>
           </div>
           <div className="flex justify-end gap-3">
             <Button variant="secondary" onClick={() => setIsAdding(false)}>Отмена</Button>
@@ -78,18 +104,18 @@ export default function Inventory({ ingredients, setIngredients }: InventoryProp
         </Card>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
         {ingredients.map(ing => {
           const isLow = ing.quantity <= ing.minStock;
           return (
             <Card key={ing.id} className={cn(
-              "p-6 border-l-4",
+              "p-4 sm:p-6 border-l-4",
               isLow ? "border-l-red-500" : "border-l-emerald-500"
             )}>
               <div className="flex justify-between items-start mb-4">
                 <div>
                   <h3 className="font-bold text-slate-900">{ing.name}</h3>
-                  <p className="text-xs text-slate-500 uppercase tracking-wider font-semibold">Ед. изм: {ing.unit}</p>
+                  <p className="text-[10px] text-slate-400 font-bold uppercase">Себест.: {ing.costPrice} ₽/{ing.unit}</p>
                 </div>
                 {isLow && (
                   <div className="text-red-500 animate-pulse">
@@ -100,7 +126,10 @@ export default function Inventory({ ingredients, setIngredients }: InventoryProp
 
               <div className="flex items-end justify-between">
                 <div>
-                  <p className="text-3xl font-bold text-slate-900">{ing.quantity}</p>
+                  {/* Округление до 2 знаков для корректного отображения веса (фикс проблемы 9.600000000000001) */}
+                  <p className="text-3xl font-bold text-slate-900">
+                    {Number(ing.quantity.toFixed(2))}
+                  </p>
                   <p className="text-xs text-slate-500">Мин. остаток: {ing.minStock}</p>
                 </div>
                 <div className="flex gap-2">

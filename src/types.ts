@@ -14,6 +14,15 @@ export interface Ingredient {
   unit: string;
   quantity: number;
   minStock: number;
+  costPrice: number; // Себестоимость за единицу (кг, л, шт)
+}
+
+export interface Expense {
+  id: string;
+  description: string;
+  amount: number;
+  category: 'inventory' | 'staff' | 'utility' | 'other';
+  timestamp: number;
 }
 
 export interface OrderItem {
@@ -40,4 +49,4 @@ export interface Staff {
   login: string;
 }
 
-export type View = 'dashboard' | 'menu' | 'orders' | 'kitchen' | 'inventory' | 'staff' | 'reports';
+export type View = 'dashboard' | 'menu' | 'orders' | 'kitchen' | 'inventory' | 'staff' | 'reports' | 'changelog';

@@ -1,5 +1,7 @@
-import { useState, useEffect } from 'react';
-import { Dish, Ingredient, Order, Staff } from './types';
+import { useState, useEffect, useRef } from 'react';
+import { Dish, Ingredient, Order, Staff, Expense } from './types';
+import { db } from './firebase';
+import { doc, setDoc, collection, getDocs, writeBatch, query, orderBy } from 'firebase/firestore';
 
 // Initial Mock Data
 const initialStaff: Staff[] = [
@@ -15,10 +17,10 @@ const initialDishes: Dish[] = [
 ];
 
 const initialIngredients: Ingredient[] = [
-  { id: 'i1', name: 'Свекла', unit: 'кг', quantity: 10, minStock: 2 },
-  { id: 'i2', name: 'Куриное филе', unit: 'кг', quantity: 5, minStock: 1 },
-  { id: 'i3', name: 'Говядина', unit: 'кг', quantity: 8, minStock: 2 },
-  { id: 'i4', name: 'Картофель', unit: 'кг', quantity: 20, minStock: 5 },
+  { id: 'i1', name: 'Свекла', unit: 'кг', quantity: 10, minStock: 2, costPrice: 45 },
+  { id: 'i2', name: 'Куриное филе', unit: 'кг', quantity: 5, minStock: 1, costPrice: 380 },
+  { id: 'i3', name: 'Говядина', unit: 'кг', quantity: 8, minStock: 2, costPrice: 650 },
+  { id: 'i4', name: 'Картофель', unit: 'кг', quantity: 20, minStock: 5, costPrice: 35 },
 ];
 
 export function useCafeStore() {
@@ -42,21 +44,89 @@ export function useCafeStore() {
     return saved ? JSON.parse(saved) : initialStaff;
   });
 
+  const [expenses, setExpenses] = useState<Expense[]>(() => {
+    const saved = localStorage.getItem('cafe_expenses');
+    return saved ? JSON.parse(saved) : [];
+  });
+
+  const lastSavedRef = useRef<number>(Date.now());
+
+  // Функция для сохранения данных в Firebase
+  const saveToFirebase = async () => {
+    try {
+      console.log('Начало автосохранения в Firebase...');
+      const batch = writeBatch(db);
+
+      // Сохранение блюд
+      dishes.forEach(dish => {
+        batch.set(doc(db, 'dishes', dish.id), dish);
+      });
+
+      // Сохранение ингредиентов
+      ingredients.forEach(ing => {
+        batch.set(doc(db, 'ingredients', ing.id), ing);
+      });
+
+      // Сохранение заказов
+      orders.forEach(order => {
+        batch.set(doc(db, 'orders', order.id), order);
+      });
+
+      // Сохранение персонала
+      staff.forEach(member => {
+        batch.set(doc(db, 'staff', member.id), member);
+      });
+
+      // Сохранение издержек
+      expenses.forEach(expense => {
+        batch.set(doc(db, 'expenses', expense.id), expense);
+      });
+
+      await batch.commit();
+      lastSavedRef.current = Date.now();
+      console.log('Автосохранение успешно завершено');
+    } catch (error) {
+      console.error('Ошибка при автосохранении в Firebase:', error);
+    }
+  };
+
+  // Эффект для локального сохранения и запуска таймера автосохранения
   useEffect(() => {
     localStorage.setItem('cafe_dishes', JSON.stringify(dishes));
-  }, [dishes]);
-
-  useEffect(() => {
     localStorage.setItem('cafe_ingredients', JSON.stringify(ingredients));
-  }, [ingredients]);
-
-  useEffect(() => {
     localStorage.setItem('cafe_orders', JSON.stringify(orders));
-  }, [orders]);
-
-  useEffect(() => {
     localStorage.setItem('cafe_staff', JSON.stringify(staff));
-  }, [staff]);
+    localStorage.setItem('cafe_expenses', JSON.stringify(expenses));
+
+    // Настройка интервала автосохранения (5 минут)
+    const interval = setInterval(() => {
+      saveToFirebase();
+    }, 5 * 60 * 1000);
+
+    return () => clearInterval(interval);
+  }, [dishes, ingredients, orders, staff, expenses]);
+
+  // Загрузка данных из Firebase при инициализации (опционально)
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const dishesSnap = await getDocs(collection(db, 'dishes'));
+        if (!dishesSnap.empty) {
+          const loadedDishes = dishesSnap.docs.map(d => d.data() as Dish);
+          setDishes(loadedDishes);
+        }
+        // Аналогично для остальных коллекций...
+        const expensesSnap = await getDocs(query(collection(db, 'expenses'), orderBy('timestamp', 'desc')));
+        if (!expensesSnap.empty) {
+          const loadedExpenses = expensesSnap.docs.map(d => d.data() as Expense);
+          setExpenses(loadedExpenses);
+        }
+      } catch (e) {
+        console.warn('Не удалось загрузить данные из Firebase, используем локальные');
+      }
+    };
+    loadData();
+  }, []);
 
   const addOrder = (order: Order) => {
     setOrders(prev => [order, ...prev]);
@@ -70,12 +140,16 @@ export function useCafeStore() {
           usedAmount += recipeItem.amount * item.quantity;
         }
       });
-      return { ...ing, quantity: Math.max(0, ing.quantity - usedAmount) };
+      return { ...ing, quantity: Number(Math.max(0, ing.quantity - usedAmount).toFixed(3)) };
     }));
   };
 
   const updateOrderStatus = (orderId: string, status: Order['status']) => {
     setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status } : o));
+  };
+
+  const addExpense = (expense: Expense) => {
+    setExpenses(prev => [expense, ...prev]);
   };
 
   return {
@@ -87,6 +161,8 @@ export function useCafeStore() {
     addOrder,
     updateOrderStatus,
     staff,
-    setStaff
+    setStaff,
+    expenses,
+    addExpense
   };
 }

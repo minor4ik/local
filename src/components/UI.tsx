@@ -26,13 +26,15 @@ export const Button = ({
   onClick, 
   variant = 'primary', 
   className,
-  disabled
+  disabled,
+  type = 'button'
 }: { 
   children: React.ReactNode; 
   onClick?: () => void; 
   variant?: 'primary' | 'secondary' | 'danger' | 'ghost';
   className?: string;
   disabled?: boolean;
+  type?: 'button' | 'submit' | 'reset';
 }) => {
   const variants = {
     primary: "bg-indigo-600 text-white hover:bg-indigo-700",
@@ -43,6 +45,7 @@ export const Button = ({
 
   return (
     <button 
+      type={type}
       onClick={onClick}
       disabled={disabled}
       className={cn(

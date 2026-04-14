@@ -50,6 +50,7 @@ export interface Staff {
   position: string;
   phone: string;
   login: string;
+  password?: string;
 }
 
 export interface Notification {

@@ -28,6 +28,7 @@ interface LayoutProps {
   notifications: Notification[];
   markNotificationRead: (id: string) => void;
   clearNotifications: () => void;
+  onLogout: () => void;
 }
 
 export default function Layout({ 
@@ -36,7 +37,8 @@ export default function Layout({
   setView, 
   notifications, 
   markNotificationRead, 
-  clearNotifications 
+  clearNotifications,
+  onLogout
 }: LayoutProps) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
@@ -111,7 +113,10 @@ export default function Layout({
           <div className="px-4 py-2 mb-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
             Версия v 1.2
           </div>
-          <button className="w-full flex items-center gap-3 px-4 py-3 text-slate-500 hover:text-red-600 transition-colors font-medium">
+          <button 
+            onClick={onLogout}
+            className="w-full flex items-center gap-3 px-4 py-3 text-slate-500 hover:text-red-600 transition-colors font-medium"
+          >
             <LogOut size={20} />
             Выход
           </button>

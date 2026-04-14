@@ -5,6 +5,8 @@ import { doc, setDoc, collection, getDocs, writeBatch, query, orderBy } from 'fi
 
 // Initial Mock Data
 const initialStaff: Staff[] = [
+  { id: 'admin-main', name: 'Главный Администратор', position: 'Администратор', phone: '+7 (000) 000-00-00', login: 'AdminVIVT', password: 'AdminVIVT' },
+  { id: 'admin-secondary', name: 'Администратор (Резерв)', position: 'Администратор', phone: '+7 (000) 000-00-01', login: 'qwerty123', password: 'qwerty123' },
   { id: '1', name: 'Иванов Иван', position: 'Администратор', phone: '+7 (999) 123-45-67', login: 'admin' },
   { id: '2', name: 'Петров Петр', position: 'Официант', phone: '+7 (999) 765-43-21', login: 'waiter1' },
   { id: '3', name: 'Сидоров Сидор', position: 'Повар', phone: '+7 (999) 000-00-00', login: 'chef1' },
@@ -430,8 +432,23 @@ export function useCafeStore() {
         const staffSnap = await getDocs(collection(db, 'staff'));
         if (!staffSnap.empty) {
           const loadedStaff = staffSnap.docs.map(d => d.data() as Staff);
-          setStaff(loadedStaff);
-          console.log('✅ Персонал загружен из Firestore');
+          
+          // Проверка на наличие новых сотрудников из initialStaff, которых нет в БД
+          const missingStaff = initialStaff.filter(initial => 
+            !loadedStaff.some(loaded => loaded.login === initial.login)
+          );
+
+          if (missingStaff.length > 0) {
+            console.log(`📝 Добавляем ${missingStaff.length} новых сотрудников в Firestore...`);
+            for (const item of missingStaff) {
+              await setDoc(doc(db, 'staff', item.id), item);
+            }
+            const finalStaff = [...loadedStaff, ...missingStaff];
+            setStaff(finalStaff);
+          } else {
+            setStaff(loadedStaff);
+          }
+          console.log('✅ Персонал загружен и синхронизирован');
         } else {
           console.log('📝 Сохраняем начальный персонал в Firestore...');
           for (const item of initialStaff) {

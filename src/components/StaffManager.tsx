@@ -25,7 +25,8 @@ export default function StaffManager({ staff, setStaff }: StaffManagerProps) {
       name: newMember.name!,
       position: newMember.position!,
       phone: newMember.phone || '',
-      login: newMember.login!
+      login: newMember.login!,
+      password: newMember.password || ''
     };
     setStaff(prev => [...prev, member]);
     setIsAdding(false);
@@ -101,6 +102,15 @@ export default function StaffManager({ staff, setStaff }: StaffManagerProps) {
                 onChange={e => setNewMember({...newMember, login: e.target.value})}
               />
             </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-slate-700">Пароль</label>
+              <input 
+                type="password" 
+                className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:ring-2 focus:ring-indigo-500/20"
+                value={newMember.password || ''}
+                onChange={e => setNewMember({...newMember, password: e.target.value})}
+              />
+            </div>
           </div>
           <div className="flex justify-end gap-3">
             <Button variant="secondary" onClick={() => setIsAdding(false)}>Отмена</Button>
@@ -156,6 +166,15 @@ export default function StaffManager({ staff, setStaff }: StaffManagerProps) {
                 className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:ring-2 focus:ring-amber-500/20"
                 value={editingMember.login}
                 onChange={e => setEditingMember({...editingMember, login: e.target.value})}
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-slate-700">Пароль</label>
+              <input 
+                type="password" 
+                className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:ring-2 focus:ring-amber-500/20"
+                value={editingMember.password || ''}
+                onChange={e => setEditingMember({...editingMember, password: e.target.value})}
               />
             </div>
           </div>

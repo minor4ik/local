@@ -1,14 +1,15 @@
 import React, { useState } from 'react';
 import { Plus, Minus, ShoppingCart, Trash2 } from 'lucide-react';
-import { Dish, OrderItem, Order } from '../types';
+import { Dish, OrderItem, Order, Ingredient } from '../types';
 import { Card, Button } from './UI';
 
 interface OrderSystemProps {
   dishes: Dish[];
   addOrder: (order: Order) => void;
+  ingredients: Ingredient[];
 }
 
-export default function OrderSystem({ dishes, addOrder }: OrderSystemProps) {
+export default function OrderSystem({ dishes, addOrder, ingredients }: OrderSystemProps) {
   const [cart, setCart] = useState<OrderItem[]>([]);
   const [tableNumber, setTableNumber] = useState(1);
 
@@ -45,6 +46,7 @@ export default function OrderSystem({ dishes, addOrder }: OrderSystemProps) {
     
     const newOrder: Order = {
       id: Math.random().toString(36).substr(2, 9),
+      orderNumber: '', // Будет сгенерирован в store
       tableNumber,
       items: [...cart],
       status: 'pending',
@@ -142,7 +144,21 @@ export default function OrderSystem({ dishes, addOrder }: OrderSystemProps) {
                   <h3 className="font-bold text-slate-900 group-hover:text-indigo-600 transition-colors">{dish.name}</h3>
                   <span className="text-indigo-600 font-bold">{dish.price} ₽</span>
                 </div>
-                <p className="text-sm text-slate-500 line-clamp-2 mb-4">{dish.description}</p>
+                <p className="text-sm text-slate-500 line-clamp-2 mb-2">{dish.description}</p>
+                <div className="flex flex-wrap gap-1 mb-3">
+                  {dish.ingredients.map(ing => {
+                    const ingredient = ingredients.find(i => i.id === ing.ingredientId);
+                    return ingredient ? (
+                      <span key={ing.ingredientId} className="text-[10px] px-1.5 py-0.5 bg-slate-100 text-slate-500 rounded">
+                        {ingredient.name}
+                      </span>
+                    ) : null;
+                  })}
+                </div>
+                <div className="flex justify-between items-center mb-4">
+                  <span className="text-[10px] font-bold text-indigo-500 uppercase">Вес: {dish.weight}г</span>
+                  <span className="text-[10px] font-bold text-slate-400 uppercase">~{dish.prepTime} мин</span>
+                </div>
               </div>
               <Button variant="secondary" className="w-full group-hover:bg-indigo-600 group-hover:text-white transition-all">
                 <Plus size={16} />

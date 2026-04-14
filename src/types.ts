@@ -6,6 +6,8 @@ export interface Dish {
   description: string;
   available: boolean;
   ingredients: { ingredientId: string; amount: number }[];
+  prepTime: number; // Время приготовления в минутах
+  weight: number; // Вес блюда в граммах
 }
 
 export interface Ingredient {
@@ -34,6 +36,7 @@ export interface OrderItem {
 
 export interface Order {
   id: string;
+  orderNumber: string; // Номер чека
   tableNumber: number;
   items: OrderItem[];
   status: 'pending' | 'cooking' | 'ready' | 'completed' | 'cancelled';
@@ -47,6 +50,15 @@ export interface Staff {
   position: string;
   phone: string;
   login: string;
+}
+
+export interface Notification {
+  id: string;
+  title: string;
+  message: string;
+  type: 'order' | 'inventory' | 'status' | 'info';
+  timestamp: number;
+  read: boolean;
 }
 
 export type View = 'dashboard' | 'menu' | 'orders' | 'kitchen' | 'inventory' | 'staff' | 'reports' | 'changelog';

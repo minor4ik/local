@@ -11,19 +11,37 @@ import {
   FileBarChart,
   History,
   Menu as MenuIcon,
-  X
+  X,
+  CheckCircle2,
+  AlertCircle,
+  Info,
+  Trash2,
+  Clock
 } from 'lucide-react';
-import { View } from '../types';
+import { View, Notification } from '../types';
 import { cn } from './UI';
 
 interface LayoutProps {
   children: React.ReactNode;
   currentView: View;
   setView: (view: View) => void;
+  notifications: Notification[];
+  markNotificationRead: (id: string) => void;
+  clearNotifications: () => void;
 }
 
-export default function Layout({ children, currentView, setView }: LayoutProps) {
+export default function Layout({ 
+  children, 
+  currentView, 
+  setView, 
+  notifications, 
+  markNotificationRead, 
+  clearNotifications 
+}: LayoutProps) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+
+  const unreadCount = notifications.filter(n => !n.read).length;
 
   const menuItems = [
     { id: 'dashboard', label: 'Статистика', icon: LayoutDashboard },
@@ -114,11 +132,81 @@ export default function Layout({ children, currentView, setView }: LayoutProps) 
               {menuItems.find(i => i.id === currentView)?.label}
             </h1>
           </div>
-          <div className="flex items-center gap-2 sm:gap-4">
-            <button className="p-2 text-slate-400 hover:text-indigo-600 transition-colors relative">
+          <div className="flex items-center gap-2 sm:gap-4 relative">
+            <button 
+              onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
+              className="p-2 text-slate-400 hover:text-indigo-600 transition-colors relative"
+            >
               <Bell size={20} />
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
+              {unreadCount > 0 && (
+                <span className="absolute top-1.5 right-1.5 w-4 h-4 bg-red-500 rounded-full border-2 border-white text-[10px] text-white flex items-center justify-center font-bold">
+                  {unreadCount}
+                </span>
+              )}
             </button>
+
+            {/* Notifications Dropdown */}
+            {isNotificationsOpen && (
+              <div className="absolute top-full right-0 mt-2 w-80 bg-white rounded-2xl shadow-xl border border-slate-100 z-[60] overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
+                <div className="p-4 border-b border-slate-100 flex justify-between items-center">
+                  <h3 className="font-bold text-slate-900">Уведомления</h3>
+                  <button 
+                    onClick={clearNotifications}
+                    className="text-xs text-slate-400 hover:text-red-500 flex items-center gap-1"
+                  >
+                    <Trash2 size={12} />
+                    Очистить
+                  </button>
+                </div>
+                <div className="max-h-96 overflow-y-auto">
+                  {notifications.length === 0 ? (
+                    <div className="p-8 text-center text-slate-400">
+                      <Bell size={32} className="mx-auto mb-2 opacity-20" />
+                      <p className="text-sm">Нет новых уведомлений</p>
+                    </div>
+                  ) : (
+                    <div className="divide-y divide-slate-50">
+                      {notifications.map(notif => (
+                        <div 
+                          key={notif.id} 
+                          onClick={() => markNotificationRead(notif.id)}
+                          className={cn(
+                            "p-4 hover:bg-slate-50 transition-colors cursor-pointer relative",
+                            !notif.read && "bg-indigo-50/30"
+                          )}
+                        >
+                          {!notif.read && (
+                            <div className="absolute left-1 top-1/2 -translate-y-1/2 w-1 h-8 bg-indigo-500 rounded-full"></div>
+                          )}
+                          <div className="flex gap-3">
+                            <div className={cn(
+                              "w-8 h-8 rounded-lg flex items-center justify-center shrink-0",
+                              notif.type === 'order' ? "bg-emerald-100 text-emerald-600" :
+                              notif.type === 'status' ? "bg-indigo-100 text-indigo-600" :
+                              notif.type === 'inventory' ? "bg-amber-100 text-amber-600" : "bg-slate-100 text-slate-600"
+                            )}>
+                              {notif.type === 'order' && <Utensils size={16} />}
+                              {notif.type === 'status' && <CheckCircle2 size={16} />}
+                              {notif.type === 'inventory' && <AlertCircle size={16} />}
+                              {notif.type === 'info' && <Info size={16} />}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-bold text-slate-900 truncate">{notif.title}</p>
+                              <p className="text-xs text-slate-500 line-clamp-2 mt-0.5">{notif.message}</p>
+                              <div className="flex items-center gap-1 mt-2 text-[10px] text-slate-400">
+                                <Clock size={10} />
+                                {new Date(notif.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
             <div className="flex items-center gap-3 pl-2 sm:pl-4 border-l border-slate-200">
               <div className="text-right hidden sm:block">
                 <p className="text-sm font-medium text-slate-900">Администратор</p>

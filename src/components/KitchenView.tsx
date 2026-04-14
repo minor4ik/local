@@ -1,15 +1,28 @@
 import React from 'react';
 import { Clock, CheckCircle2, Play, Check, ChefHat } from 'lucide-react';
-import { Order } from '../types';
+import { Order, Dish } from '../types';
 import { Card, Button, cn } from './UI';
 
 interface KitchenViewProps {
   orders: Order[];
   updateStatus: (id: string, status: Order['status']) => void;
+  dishes: Dish[];
 }
 
-export default function KitchenView({ orders, updateStatus }: KitchenViewProps) {
+export default function KitchenView({ orders, updateStatus, dishes }: KitchenViewProps) {
   const activeOrders = orders.filter(o => ['pending', 'cooking', 'ready'].includes(o.status));
+
+  const getEstimatedTime = (order: Order) => {
+    let maxTime = 0;
+    order.items.forEach(item => {
+      const dish = dishes.find(d => d.id === item.dishId);
+      if (dish && dish.prepTime > maxTime) {
+        maxTime = dish.prepTime;
+      }
+    });
+    // Добавляем по 2 минуты за каждое дополнительное блюдо в заказе
+    return maxTime + (order.items.length - 1) * 2;
+  };
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
@@ -21,10 +34,23 @@ export default function KitchenView({ orders, updateStatus }: KitchenViewProps) 
         )}>
           <div className="p-4 border-b border-slate-100 flex justify-between items-center">
             <div>
-              <h3 className="font-bold text-lg">Стол №{order.tableNumber}</h3>
-              <div className="flex items-center gap-1.5 text-xs text-slate-500">
-                <Clock size={12} />
-                {new Date(order.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+              <div className="flex items-center gap-2">
+                <h3 className="font-bold text-lg">Стол №{order.tableNumber}</h3>
+                <span className="text-[10px] font-mono font-bold text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded">
+                  #{order.orderNumber || '----'}
+                </span>
+              </div>
+              <div className="flex flex-col gap-1">
+                <div className="flex items-center gap-1.5 text-xs text-slate-500">
+                  <Clock size={12} />
+                  {new Date(order.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                </div>
+                {order.status !== 'ready' && (
+                  <div className="flex items-center gap-1.5 text-[10px] font-bold text-indigo-500 uppercase">
+                    <Clock size={10} />
+                    Ожидание: ~{getEstimatedTime(order)} мин
+                  </div>
+                )}
               </div>
             </div>
             <span className={cn(

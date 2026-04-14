@@ -10,9 +10,15 @@ import Reports from './components/Reports';
 import Changelog from './components/Changelog';
 import { useCafeStore } from './store';
 import { View } from './types';
+import { useEffect } from 'react';
+import { testFirebase } from './testFirebase';
 
 export default function App() {
   const [currentView, setView] = useState<View>('dashboard');
+
+  useEffect(() => {
+    testFirebase();
+  }, []);
   const { 
     dishes, 
     setDishes, 
@@ -24,35 +30,45 @@ export default function App() {
     staff,
     setStaff,
     expenses,
-    addExpense
+    addExpense,
+    notifications,
+    markNotificationRead,
+    clearNotifications,
+    clearOrders
   } = useCafeStore();
 
   const renderView = () => {
     switch (currentView) {
       case 'dashboard':
-        return <Dashboard orders={orders} />;
+        return <Dashboard orders={orders} onNavigate={setView} />;
       case 'menu':
         return <MenuManager dishes={dishes} setDishes={setDishes} />;
       case 'orders':
-        return <OrderSystem dishes={dishes} addOrder={addOrder} />;
+        return <OrderSystem dishes={dishes} addOrder={addOrder} ingredients={ingredients} />;
       case 'kitchen':
-        return <KitchenView orders={orders} updateStatus={updateOrderStatus} />;
+        return <KitchenView orders={orders} updateStatus={updateOrderStatus} dishes={dishes} />;
       case 'inventory':
         return <Inventory ingredients={ingredients} setIngredients={setIngredients} addExpense={addExpense} />;
       case 'staff':
         return <StaffManager staff={staff} setStaff={setStaff} />;
       case 'reports':
-        return <Reports orders={orders} expenses={expenses} />;
+        return <Reports orders={orders} expenses={expenses} clearOrders={clearOrders} />;
       // Отображение нового раздела Журнала обновлений
       case 'changelog':
         return <Changelog />;
       default:
-        return <Dashboard orders={orders} />;
+        return <Dashboard orders={orders} onNavigate={setView} />;
     }
   };
 
   return (
-    <Layout currentView={currentView} setView={setView}>
+    <Layout 
+      currentView={currentView} 
+      setView={setView}
+      notifications={notifications}
+      markNotificationRead={markNotificationRead}
+      clearNotifications={clearNotifications}
+    >
       {renderView()}
     </Layout>
   );

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { AlertTriangle, Plus, ArrowDown, ArrowUp, X } from 'lucide-react';
+import { AlertTriangle, Plus, ArrowDown, ArrowUp, X, Edit2 } from 'lucide-react';
 import { Ingredient, Expense } from '../types';
 import { Card, Button, cn } from './UI';
 
@@ -11,6 +11,7 @@ interface InventoryProps {
 
 export default function Inventory({ ingredients, setIngredients, addExpense }: InventoryProps) {
   const [isAdding, setIsAdding] = useState(false);
+  const [editingIngredient, setEditingIngredient] = useState<Ingredient | null>(null);
   const [supply, setSupply] = useState({ ingredientId: '', amount: 0, cost: 0 });
 
   const handleSupply = () => {
@@ -37,6 +38,12 @@ export default function Inventory({ ingredients, setIngredients, addExpense }: I
 
     setIsAdding(false);
     setSupply({ ingredientId: '', amount: 0, cost: 0 });
+  };
+
+  const handleUpdateIngredient = () => {
+    if (!editingIngredient || !editingIngredient.name) return;
+    setIngredients(prev => prev.map(ing => ing.id === editingIngredient.id ? editingIngredient : ing));
+    setEditingIngredient(null);
   };
 
   const adjustStock = (id: string, delta: number) => {
@@ -104,6 +111,59 @@ export default function Inventory({ ingredients, setIngredients, addExpense }: I
         </Card>
       )}
 
+      {editingIngredient && (
+        <Card className="p-4 sm:p-6 border-2 border-amber-100 bg-amber-50/30">
+          <div className="flex justify-between items-center mb-4 sm:mb-6">
+            <h3 className="text-lg font-bold">Редактировать продукт</h3>
+            <button onClick={() => setEditingIngredient(null)} className="text-slate-400 hover:text-slate-600">
+              <X size={20} />
+            </button>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-slate-700">Название</label>
+              <input 
+                type="text" 
+                className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:ring-2 focus:ring-amber-500/20"
+                value={editingIngredient.name}
+                onChange={e => setEditingIngredient({...editingIngredient, name: e.target.value})}
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-slate-700">Ед. измерения</label>
+              <input 
+                type="text" 
+                className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:ring-2 focus:ring-amber-500/20"
+                value={editingIngredient.unit}
+                onChange={e => setEditingIngredient({...editingIngredient, unit: e.target.value})}
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-slate-700">Мин. остаток</label>
+              <input 
+                type="number" 
+                className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:ring-2 focus:ring-amber-500/20"
+                value={editingIngredient.minStock}
+                onChange={e => setEditingIngredient({...editingIngredient, minStock: Number(e.target.value)})}
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-slate-700">Себестоимость (₽)</label>
+              <input 
+                type="number" 
+                className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:ring-2 focus:ring-amber-500/20"
+                value={editingIngredient.costPrice}
+                onChange={e => setEditingIngredient({...editingIngredient, costPrice: Number(e.target.value)})}
+              />
+            </div>
+          </div>
+          <div className="flex justify-end gap-3">
+            <Button variant="secondary" onClick={() => setEditingIngredient(null)}>Отмена</Button>
+            <Button onClick={handleUpdateIngredient} className="bg-amber-600 hover:bg-amber-700">Обновить</Button>
+          </div>
+        </Card>
+      )}
+
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
         {ingredients.map(ing => {
           const isLow = ing.quantity <= ing.minStock;
@@ -117,11 +177,19 @@ export default function Inventory({ ingredients, setIngredients, addExpense }: I
                   <h3 className="font-bold text-slate-900">{ing.name}</h3>
                   <p className="text-[10px] text-slate-400 font-bold uppercase">Себест.: {ing.costPrice} ₽/{ing.unit}</p>
                 </div>
-                {isLow && (
-                  <div className="text-red-500 animate-pulse">
-                    <AlertTriangle size={20} />
-                  </div>
-                )}
+                <div className="flex gap-2">
+                  {isLow && (
+                    <div className="text-red-500 animate-pulse">
+                      <AlertTriangle size={20} />
+                    </div>
+                  )}
+                  <button 
+                    onClick={() => setEditingIngredient(ing)}
+                    className="p-1 text-slate-400 hover:text-indigo-600 transition-colors"
+                  >
+                    <Edit2 size={16} />
+                  </button>
+                </div>
               </div>
 
               <div className="flex items-end justify-between">

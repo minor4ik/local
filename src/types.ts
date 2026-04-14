@@ -1,0 +1,43 @@
+export interface Dish {
+  id: string;
+  name: string;
+  category: string;
+  price: number;
+  description: string;
+  available: boolean;
+  ingredients: { ingredientId: string; amount: number }[];
+}
+
+export interface Ingredient {
+  id: string;
+  name: string;
+  unit: string;
+  quantity: number;
+  minStock: number;
+}
+
+export interface OrderItem {
+  dishId: string;
+  name: string;
+  quantity: number;
+  price: number;
+}
+
+export interface Order {
+  id: string;
+  tableNumber: number;
+  items: OrderItem[];
+  status: 'pending' | 'cooking' | 'ready' | 'completed' | 'cancelled';
+  timestamp: number;
+  total: number;
+}
+
+export interface Staff {
+  id: string;
+  name: string;
+  position: string;
+  phone: string;
+  login: string;
+}
+
+export type View = 'dashboard' | 'menu' | 'orders' | 'kitchen' | 'inventory' | 'staff' | 'reports';
